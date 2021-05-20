@@ -11,12 +11,14 @@ class AmazonTest(unittest.TestCase):
     def test_search(self):
         amazon = AmazonPage(self.driver)
         amazon.open()
-        sleep(1)
-        amazon.change_country('Colombia')
-        #amazon.search('playstation 5')
-        #self.assertEqual('playstation 5', amazon.keyword)
-        #amazon.click_submit()
-        sleep(60)
+        # amazon.change_country('Colombia')
+        amazon.search('playstation 4')
+        self.assertEqual('playstation 4', amazon.keyword)
+        # amazon.filter_product('New')
+        # amazon.filter_product('Include Out of Stock')
+        # amazon.sort_by('Price: High to Low')
+        amazon.view_price()
+        sleep(3000)
 
     @classmethod
     def tearDownClass(cls):

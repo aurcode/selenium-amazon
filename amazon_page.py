@@ -25,17 +25,24 @@ class AmazonPage(object):
 
     def open(self):
         self._driver.get(self._url)
+        sleep(5)
 
     def change_country(self, country):
         select_country = WebDriverWait(self._driver, 15).until(EC.element_to_be_clickable((By.ID, self._select_country)))
         select_country.click()
         sleep(3)
-        country_button = Select(WebDriverWait(self._driver, 15).until(EC.element_to_be_clickable((By.CLASS_NAME, self._country_button))))
-        [print(option.text) for option in country_button.options]
-        #country_button = self._driver.find_element_by_class_name(self._country_button)
-        country_button.select_by_visible_text(country)
-        #self._driver.find_element_by_name('glowDoneButton').click()
-        #WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/gallery/"]')))
+
+        button_country = self._driver.find_element_by_xpath('//span[@class="a-button-text a-declarative"]')
+        button_country.click()
+        sleep(1)
+
+        list_country = self._driver.find_element_by_xpath('//div[@class="a-popover-inner a-lgtbox-vertical-scroll"]/ul')
+        list_country = list_country.find_element_by_link_text(country)
+        list_country.click()
+        sleep(3)
+
+        done = self._driver.find_element_by_xpath('//div[@id="a-popover-3"]/div/div[2]/span/span/span/button')
+        done.click()
 
     def type_search(self, keyword):
         input_field = self._driver.find_element_by_name(self.search_locator)
@@ -45,6 +52,24 @@ class AmazonPage(object):
         input_field = self._driver.find_element_by_name(self.search_locator)
         input_field.submit()
 
+    def filter_product(self, f):
+        s = self._driver.find_element_by_xpath('//div[@class="a-section a-spacing-double-large"]')
+        s.find_element_by_xpath(f'//span[.="{f}"]').click()
+        sleep(3)
+
+    def sort_by(self, by):
+        sort_list = self._driver.find_element_by_xpath('//span[@class="a-button-text a-declarative"]')
+        sort_list.click()
+        f = self._driver.find_element_by_xpath('//div[@class="a-popover-inner"]/ul')
+        f.find_element_by_link_text(by).click()
+
+    def view_price(self):
+        products = self._driver.find_elements_by_xpath('//div[@class="a-section a-spacing-medium"]')
+        title = lambda a : a.find_element_by_xpath('//h2/a/span').text
+        price = lambda a : a.find_element_by_xpath('//a[@class="a-size-base a-link-normal a-text-normal"]/span/span[@class="a-offscreen"]').text
+        [print(f'{title(product)}\n{price(product)}\n') for product in products]
+        print('finest')
+
     def search(self, keyword):
         self.type_search(keyword)
-        self.click_submit
+        self.click_submit()
