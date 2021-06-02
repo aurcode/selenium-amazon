@@ -1,8 +1,7 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 from time import sleep
 
 class AmazonPage(object):
@@ -64,11 +63,17 @@ class AmazonPage(object):
         f.find_element_by_link_text(by).click()
 
     def view_price(self):
-        products = self._driver.find_elements_by_xpath('//div[@class="a-section a-spacing-medium"]')
-        title = lambda a : a.find_element_by_xpath('//h2/a/span').text
-        price = lambda a : a.find_element_by_xpath('//a[@class="a-size-base a-link-normal a-text-normal"]/span/span[@class="a-offscreen"]').text
-        [print(f'{title(product)}\n{price(product)}\n') for product in products]
-        print('finest')
+        products = self._driver.find_elements_by_xpath('//div[@class="a-section a-spacing-medium"]//div[@class="sg-col sg-col-4-of-12 sg-col-8-of-16 sg-col-12-of-20"]')
+        title = lambda a : a.find_element_by_xpath('.//h2/a/span').text
+        price = lambda a : a.find_element_by_xpath('.//a[@class="a-size-base a-link-normal a-text-normal"]/span/span/span[@class="a-price-whole"]').text
+        for product in products:
+            try:
+                if price(product):
+                    print('Title:', title(product))
+                    print(f'Price: ${price(product)}')
+                    print('')
+            except NoSuchElementException as e:
+                pass
 
     def search(self, keyword):
         self.type_search(keyword)
