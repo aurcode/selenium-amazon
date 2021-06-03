@@ -1,7 +1,6 @@
 import unittest
 from selenium import webdriver
 from amazon_page import AmazonPage
-from time import sleep
 
 class AmazonTest(unittest.TestCase):
     @classmethod
@@ -17,8 +16,7 @@ class AmazonTest(unittest.TestCase):
         amazon.filter_product('New')
         amazon.filter_product('Include Out of Stock')
         amazon.sort_by('Price: High to Low')
-        amazon.view_price()
-        sleep(120)
+        amazon.saving_elements()
 
     @classmethod
     def tearDownClass(cls):
