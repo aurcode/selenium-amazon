@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from time import sleep
 import pandas as pd
 
@@ -9,13 +10,14 @@ class AmazonPage(object):
     def __init__(self, driver):
         self._driver = driver
         self._url = 'https://www.amazon.com/'
+        self._delay = 60
         self.search_locator = 'field-keywords'
         self._select_country = 'nav-global-location-popover-link'
         self._country_button = 'a-button-text a-declarative'
 
     @property
     def is_loaded(self):
-        WebDriverWait(self._driver, 10).until(EC.presence_of_element_located((By.NAME, self.search_locator)))
+        WebDriverWait(self._driver, self._delay).until(EC.presence_of_element_located((By.NAME, self.search_locator)))
         return True
 
     @property
@@ -26,25 +28,25 @@ class AmazonPage(object):
     def open(self):
         self._driver.get(self._url)
         print('\n\nOpen', self._url)
-        sleep(5)
+        sleep(2)
 
     def change_country(self, country):
-        select_country = WebDriverWait(self._driver, 15).until(EC.element_to_be_clickable((By.ID, self._select_country)))
-        select_country.click()
-        sleep(5)
+        try:
+            select_country = WebDriverWait(self._driver, self._delay).until(EC.presence_of_element_located((By.ID, self._select_country)))
+            select_country.click()
 
-        button_country = self._driver.find_element_by_xpath('//span[@class="a-button-text a-declarative"]')
-        button_country.click()
-        sleep(1)
+            button_country = WebDriverWait(self._driver, self._delay).until(EC.element_to_be_clickable((By.XPATH, '//span[@class="a-button-text a-declarative"]')))
+            button_country.click()
 
-        list_country = self._driver.find_element_by_xpath('//div[@class="a-popover-inner a-lgtbox-vertical-scroll"]/ul')
-        list_country = list_country.find_element_by_link_text(country)
-        list_country.click()
-        sleep(3)
+            list_country = WebDriverWait(self._driver, self._delay).until(EC.element_to_be_clickable((By.XPATH, '//div[@class="a-popover-inner a-lgtbox-vertical-scroll"]/ul')))
+            list_country = list_country.find_element_by_link_text(country)
+            list_country.click()
 
-        done = self._driver.find_element_by_xpath('//div[@id="a-popover-3"]/div/div[2]/span/span/span/button')
-        done.click()
-        print('Change country to', country)
+            done = list_country = WebDriverWait(self._driver, self._delay).until(EC.element_to_be_clickable((By.XPATH, '//div[@id="a-popover-3"]/div/div[2]/span/span/span/button')))
+            done.click()
+            print('Change country to', country)
+        except TimeoutException:
+            print('Change country, TimeoutException')
 
     def type_search(self, keyword):
         input_field = self._driver.find_element_by_name(self.search_locator)
@@ -55,18 +57,16 @@ class AmazonPage(object):
         input_field.submit()
 
     def filter_product(self, filter):
-        s = self._driver.find_element_by_xpath('//div[@class="a-section a-spacing-double-large"]')
+        s = WebDriverWait(self._driver, self._delay).until(EC.presence_of_element_located((By.XPATH, '//div[@class="a-section a-spacing-double-large"]')))
         s.find_element_by_xpath(f'.//span[.="{filter}"]').click()
         print(f'Apply filter "{filter}"')
-        sleep(3)
 
     def sort_by(self, by):
-        sort_list = self._driver.find_element_by_xpath('//span[@class="a-button-text a-declarative"]')
+        sort_list = WebDriverWait(self._driver, self._delay).until(EC.presence_of_element_located((By.XPATH, '//span[@class="a-button-text a-declarative"]')))
         sort_list.click()
-        f = self._driver.find_element_by_xpath('//div[@class="a-popover-inner"]/ul')
+        f = WebDriverWait(self._driver, self._delay).until(EC.presence_of_element_located((By.XPATH, '//div[@class="a-popover-inner"]/ul')))
         f.find_element_by_link_text(by).click()
         print(f'Sort by "{by}"')
-        sleep(3)
 
     def add_to_dic(self, find_element, product):
         try:
@@ -76,7 +76,8 @@ class AmazonPage(object):
 
 
     def saving_elements(self):
-        products = self._driver.find_elements_by_xpath('//div[@class="a-section a-spacing-medium"]//div[@class="sg-col sg-col-4-of-12 sg-col-8-of-16 sg-col-12-of-20"]')
+        sleep(2)
+        products = WebDriverWait(self._driver, self._delay).until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="a-section a-spacing-medium"]//div[@class="sg-col sg-col-4-of-12 sg-col-8-of-16 sg-col-12-of-20"]')))
         title = lambda a : a.find_element_by_xpath('.//h2/a/span').text
         price = lambda a : a.find_element_by_xpath('.//span[@class="a-price-whole"]').text
         ranking = lambda a: a.find_element_by_xpath('.//span[@class="a-size-base"]').text
